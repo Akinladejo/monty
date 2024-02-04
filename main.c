@@ -1,66 +1,56 @@
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h> 
 #include "monty.h"
 
-/**
- * main - Monty interpreter
- * @ac: Command line arguments count
- * @av: Command line arguments array of strings
- *
- * Return: 0 if success
- */
-int main(int ac, char **av)
+
+op_env_t op_env = {NULL, NULL, NULL, 0, 1, LIFO};
+void op_add(stack_t **sp);
+
+void op_pint(stack_t **sp)
 {
-  char *buff = NULL, *dlim = " \n\t", *optok = NULL;
-  size_t buff_size = 0;
-  ssize_t line_size;
-  FILE *fp;
-   
-  if (ac != 2)
+    int sum;
+
+    if (!sp || !*sp)
     {
-        dprintf(2, "USAGE: monty file\n");
+        fprintf(stderr, "L%lu: can't pint, stack empty\n", (unsigned long)op_env.lineno);
         exit(EXIT_FAILURE);
     }
 
-    FILE *fp = fopen(av[1], "r");
-    if (!fp)
-    {
-        dprintf(2, "Error: Can't open file %s\n", av[1]);
-        exit(EXIT_FAILURE);
-    }
-
-    global.fp = fp;
-    set_global();
-
-   
-
-    while ((line_size = getline(&buff, &buff_size, global.fp)) >= 0)
-    {
-        global.line++;
-        char *optok = strtok(buff, " \n\t");
-
-        if (optok && optok[0] != '#')
-        {
-            global.arg = strtok(NULL, " \n\t");
-            get_opcode(optok);
-        }
-
-        global.arg = NULL;
-    }
-
-    free(buff);
-    exit_op();
-    return 0;
+    sum = (*sp)->n;
+    printf("%d\n", sum);
 }
 
 /**
- * set_global - Defines global variables
+ * main - entry point
+ * @argc: argument count
+ * @argv: argument values
  *
- * Return: No return
+ * Return: Upon success, return EXIT_SUCCESS.
  */
-void set_global(void)
+int main(int argc, char **argv)
 {
-    global.mode = 0;
-    global.buffer = NULL;
-    global.arg = NULL;
-    global.stack = NULL;
-    global.line = 0;
+	ssize_t n_read = 0;
+
+	if (argc != 2)
+		pfailure("USAGE: monty file\n");
+
+	if (!freopen(argv[1], "r", stdin))
+		pfailure("Error: Can't open file %s\n", argv[1]);
+
+	atexit(free_op_env);
+
+	while ((n_read = getline(&op_env.line, &op_env.linesz, stdin)) > 0)
+	{
+		op_env.argv = tokenize(op_env.line);
+
+		if (op_env.argv && **op_env.argv != '#')
+			get_instruction_fn(*op_env.argv)(&op_env.sp);
+
+		free(op_env.argv);
+		op_env.argv = NULL;
+		op_env.lineno += 1;
+	}
+	return (EXIT_SUCCESS);
 }
