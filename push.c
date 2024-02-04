@@ -1,68 +1,46 @@
-/**
- * _push - Pushes an integer onto the stack or queue.
- * @stack: Pointer to the head of the stack (or queue).
- * @line: Current line number in the Monty bytecode file.
- *
- * This function checks if the argument is an integer and then
- * pushes it onto the stack (or queue) depending on the mode.
- * In stack mode (mode 0), the element is added to the beginning
- * of the stack; in queue mode (mode 1), the element is added to
- * the end of the queue.
- *
- * Return: No return value.
- */
-void push(stack_t **stack, unsigned int line)
-{
-    if (!is_number(global.arg))
-    {
-        dprintf(2, "L%d: usage: push integer\n", line);
-        exit_error();
-        exit(EXIT_FAILURE);
-    }
-
-    int n = atoi(global.arg);
-    global.mode == 0 ? insert_node_begin(&global.stack, n) : insert_node_end(&global.stack, n);
-}
-
-/**
- * pall - Prints all values on the stack.
- * @stack: Pointer to the head of the stack.
- * @line: Current line number in the Monty bytecode file.
- *
- * Return: No return value.
- */
-void pall(stack_t **stack, unsigned int line)
-{
-    stack_t *tmp = *stack;
-
-    // Suppress unused parameter warning
-    (void)line;
-
-    // Iterate through the stack and print values
-    while (tmp)
-    {
-        printf("%d\n", tmp->n);
-        tmp = tmp->next;
-    }
-}
-
 #include "monty.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
- * _pop - Removes the top element from the stack.
- * @stack: Pointer to the head of the stack.
- * @line: Current line number in the Monty bytecode file.
- *
- * Return: No return value.
+ * op_push - push an element onto the stack
+ * @sp: stack pointer
  */
-void pop(stack_t **stack, unsigned int line)
-{
-    if (!stack || !*stack)
-    {
-        dprintf(2, "L%d: can't pop an empty stack\n", line);
-        exit_op();
-        exit(EXIT_FAILURE);
-    }
 
-    delete_node_index(stack, 0);
+void op_push(stack_t **sp)
+{
+	stack_t *new = NULL;
+	const char *nstr = op_env.argv[1];
+
+	if (!(nstr && isinteger(nstr)))
+	{
+		fprintf(stderr, "L%lu: usage: push integer\n",
+		(unsigned long)op_env.lineno);
+	}
+
+		new = malloc(sizeof(*new));
+		if (!new)
+	{
+		fprintf(stderr, "L%lu: can't sub, stack too short\n",
+		(unsigned long)op_env.lineno);
+	}
+
+		new->n = atoi(nstr);
+
+		if (*sp)
+	{
+		new->prev = (*sp);
+		new->next = (*sp)->next;
+		new->next->prev = new;
+		(*sp)->next = new;
+
+		if (op_env.mode == LIFO)
+		(*sp) = new;
+	}
+		else
+	{
+		new->prev = new;
+		new->next = new;
+		(*sp) = new;
+	}
 }
