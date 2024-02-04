@@ -45,13 +45,13 @@ typedef struct instruction_s
 } instruction_t;
 
 /**
- * struct global_var - contains global variables
+ * struct global_s - contains global variables
  * @mode: 0 stack, 1 queue (default stack)
- * @gbuff: getline buffer;
- * @n: argument of opcode (value of stack)
+ * @buffer: getline buffer;
+ * @node: argument of opcode (value of stack)
  * @head: head of stack
- * @line_number: keeps track of current line #
- * @fp: pointer to file descriptor
+ * @line: keeps track of current line #
+ * @file: pointer to file descriptor
  *
  * Description: Struct for keeping global vars
  *
