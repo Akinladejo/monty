@@ -1,17 +1,8 @@
 #ifndef MONTY_H
 #define MONTY_H
 
-/** Libraries **/
-
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
-/** Structs **/
 
 /**
  * struct stack_s - doubly linked list representation of a stack (or queue)
@@ -29,11 +20,12 @@ typedef struct stack_s
 	struct stack_s *next;
 } stack_t;
 
+typedef void (*instruction_fn)(stack_t **);
 
 /**
  * struct instruction_s - opcode and its function
  * @opcode: the opcode
- * @f: function to handle the opcode
+ * @fn: function to handle the opcode
  *
  * Description: opcode and its function
  * for stack, queues, LIFO, FIFO Holberton project
@@ -41,64 +33,69 @@ typedef struct stack_s
 typedef struct instruction_s
 {
 	char *opcode;
-	void (*f)(stack_t **stack, unsigned int line_number);
+	instruction_fn fn;
 } instruction_t;
 
 /**
- * struct global_s - contains global variables
- * @mode: 0 stack, 1 queue (default stack)
- * @buffer: getline buffer;
- * @node: argument of opcode (value of stack)
- * @head: head of stack
- * @line: keeps track of current line #
- * @file: pointer to file descriptor
- *
- * Description: Struct for keeping global vars
- *
+ * enum stack_mode_n - stack mode enumeration
+ * @LIFO: operate as a stack
+ * @FIFO: operate as a queue
  */
-
-typedef struct global_s
+typedef enum stack_mode_n
 {
-    int mode; // 0 for stack, 1 for queue (default is stack)
-    char *buffer; // Buffer for getline
-    char *arg; // Argument of opcode (value for stack)
-    node_t *stack; // Pointer to stack
-    unsigned int line; // Current line number
-    FILE *file; // Pointer to file descriptor
-} global_t;
+	LIFO = 0,
+	FIFO = 1
+} stack_mode_t;
 
-// Declare global variable
-extern global_t global;
+/**
+ * struct op_env_s - operation environment
+ * @sp: top of the stack
+ * @argv: argument vector
+ * @line: line buffer
+ * @linesz: line buffer size
+ * @lineno: line number
+ * @mode: stack operation mode
+ */
+typedef struct op_env_s
+{
+	stack_t *sp;
+	char **argv;
+	char *line;
+	size_t linesz;
+	size_t lineno;
+	stack_mode_t mode;
+} op_env_t;
 
-// Opcode functions
-void push(node_t **stack, unsigned int line);
-void pall(node_t **stack, unsigned int line);
-void pint(node_t **stack, unsigned int line);
-void pop(node_t **stack, unsigned int line);
-void swap(node_t **stack, unsigned int line);
-void add(node_t **stack, unsigned int line);
-void nop(node_t **stack, unsigned int line);
-void sub(node_t **stack, unsigned int line);
-void div(node_t **stack, unsigned int line);
-void mul(node_t **stack, unsigned int line);
-void mod(node_t **stack, unsigned int line);
-void pchar(node_t **stack, unsigned int line);
-void pstr(node_t **stack, unsigned int line);
-void rotl(node_t **stack, unsigned int line);
-void rotr(node_t **stack, unsigned int line);
-void stack(node_t **stack, unsigned int line);
-void queue(node_t **stack, unsigned int line);
-void set_global(void);
+extern op_env_t op_env;
 
-// Auxiliary functions
-int find_opcode(char *name);
-void exit_error(void);
+instruction_fn get_instruction_fn(const char *opcode);
 
-node_t *insert_node_begin(node_t **stack, int data);
-node_t *insert_node_end(node_t **stack, int data);
-int delete_node_at_index(node_t **stack, unsigned int index);
-void free_stack(node_t *stack);
+void op_add(stack_t **sp);
+void op_div(stack_t **sp);
+void op_mod(stack_t **sp);
+void op_mul(stack_t **sp);
+void op_nop(stack_t **sp);
+void op_pall(stack_t **sp);
+void op_pchar(stack_t **sp);
+void op_pint(stack_t **sp);
+void op_pop(stack_t **sp);
+void op_pstr(stack_t **sp);
+void op_push(stack_t **sp);
+void op_queue(stack_t **sp);
+void op_rotl(stack_t **sp);
+void op_rotr(stack_t **sp);
+void op_stack(stack_t **sp);
+void op_sub(stack_t **sp);
+void op_swap(stack_t **sp);
 
-int is_number(char *s);
+char **tokenize(char *str);
+size_t count_tokens(const char *str);
+
+void free_op_env(void);
+void free_stack(stack_t **sp);
+
+void pfailure(const char *fmt, ...);
+
+int isinteger(const char *str);
 
 #endif /* MONTY_H */
