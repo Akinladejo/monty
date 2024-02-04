@@ -46,3 +46,23 @@ void pall(stack_t **stack, unsigned int line)
     }
 }
 
+#include "monty.h"
+
+/**
+ * _pop - Removes the top element from the stack.
+ * @stack: Pointer to the head of the stack.
+ * @line: Current line number in the Monty bytecode file.
+ *
+ * Return: No return value.
+ */
+void pop(stack_t **stack, unsigned int line)
+{
+    if (!stack || !*stack)
+    {
+        dprintf(2, "L%d: can't pop an empty stack\n", line);
+        exit_op();
+        exit(EXIT_FAILURE);
+    }
+
+    delete_node_index(stack, 0);
+}
