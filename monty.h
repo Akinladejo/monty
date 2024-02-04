@@ -88,6 +88,7 @@ void rotl(node_t **stack, unsigned int line);
 void rotr(node_t **stack, unsigned int line);
 void stack(node_t **stack, unsigned int line);
 void queue(node_t **stack, unsigned int line);
+void set_global(void);
 
 // Auxiliary functions
 int find_opcode(char *name);
